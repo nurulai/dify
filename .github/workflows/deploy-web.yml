@@ -3,8 +3,8 @@ on:
       branches:
         - dify/develop
       paths:
-        - .github/workflows/deploy-api.yml
-        - 'api/**'
+        - .github/workflows/deploy-web.yml
+        - 'web/**'
 
 name: Build and Deploy `Dify API` to dev server
 
@@ -13,11 +13,13 @@ jobs:
       name: Build, deploy, and notify
       uses: bahasa-ai/workflows/.github/workflows/deploy-ssh-notify-lark.yml@main
       with:
-        package-name: dify-api
+        package-name: dify-web
         deploy-directory: /home/labahasa/repos/dify
-        working-directory: api
+        working-directory: web
         version-script: 'grep -Poi " *\"version\": *\"\K[^\"]*" ./package.json'
         deploy-script: | 
+          yarn install
+          yarn build
           pm2 restart ecosystem.config.js
         target-hostname: github:dev-lintasarta-bjb@warpgate.bahasalab.com
         group-id: NONE
