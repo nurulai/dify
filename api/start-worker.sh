@@ -1,0 +1,3 @@
+poetry install
+
+poetry run celery -A app.celery worker -P gevent -c 1 --loglevel INFO -Q dataset,generation,mail,ops_trace
