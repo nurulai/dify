@@ -3,6 +3,7 @@ on:
       branches:
         - dify/develop
       paths:
+        - .github/workflows/deploy-api.yml
         - 'api/**'
 
 name: Build and Deploy `Dify API` to dev server
