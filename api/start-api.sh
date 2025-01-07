@@ -1,4 +1,2 @@
 poetry install
-
-echo "PORT: $PORT"
-poetry run flask run --host 0.0.0.0 --port=$PORT --debug
+poetry run flask run --host 0.0.0.0 --port=18002 --debug
