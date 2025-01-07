@@ -6,7 +6,7 @@ on:
         - .github/workflows/deploy-web.yml
         - 'web/**'
 
-name: Build and Deploy `Dify API` to dev server
+name: Build and Deploy `Dify Web` to dev server
 
 jobs: 
     build-push-notify:
