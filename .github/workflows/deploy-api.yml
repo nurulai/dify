@@ -15,7 +15,7 @@ jobs:
         package-name: dify-api
         deploy-directory: /home/labahasa/repos/dify
         working-directory: api
-        version-script: '1.0.0'
+        version-script: echo "1.0.0"
         deploy-script: | 
           pm2 restart ecosystem.config.js
         target-hostname: github:dev-lintasarta-bjb@warpgate.bahasalab.com
