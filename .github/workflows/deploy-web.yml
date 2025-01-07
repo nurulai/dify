@@ -24,8 +24,8 @@ jobs:
         target-hostname: github:dev-lintasarta-bjb@warpgate.bahasalab.com
         group-id: NONE
         build-script: | 
-        yarn install
-        yarn build
+          yarn install
+          yarn build
       secrets:
         lark-app-id: ${{ secrets.LARK_APP_ID }}
         lark-app-secret: ${{ secrets.LARK_APP_SECRET }}
