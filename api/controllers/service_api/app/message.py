@@ -16,6 +16,16 @@ from models.model import App, AppMode, EndUser
 from services.errors.message import SuggestedQuestionsAfterAnswerDisabledError
 from services.message_service import MessageService
 
+from controllers.console import api
+from core.app.entities.app_invoke_entities import InvokeFrom
+from extensions.ext_database import db
+from fields.conversation_fields import message_detail_fields
+from libs.helper import uuid_value
+from libs.infinite_scroll_pagination import InfiniteScrollPagination
+from models.model import AppMode, Conversation, Message
+from services.errors.message import SuggestedQuestionsAfterAnswerDisabledError
+from services.message_service import MessageService
+
 
 class MessageListApi(Resource):
     feedback_fields = {"rating": fields.String}
@@ -97,6 +107,82 @@ class MessageListApi(Resource):
             raise NotFound("First Message Not Exists.")
 
 
+class ChatMessageListApi(Resource):
+    message_infinite_scroll_pagination_fields = {
+        "limit": fields.Integer,
+        "has_more": fields.Boolean,
+        "data": fields.List(fields.Nested(message_detail_fields)),
+    }
+
+    @validate_app_token(fetch_user_arg=FetchUserArg(fetch_from=WhereisUserArg.QUERY))
+    @marshal_with(message_infinite_scroll_pagination_fields)
+    def get(self, app_model):
+        parser = reqparse.RequestParser()
+        parser.add_argument("conversation_id", required=True, type=uuid_value, location="args")
+        parser.add_argument("first_id", type=uuid_value, location="args")
+        parser.add_argument("limit", type=int_range(1, 100), required=False, default=20, location="args")
+        args = parser.parse_args()
+
+        conversation = (
+            db.session.query(Conversation)
+            .filter(Conversation.id == args["conversation_id"], Conversation.app_id == app_model.id)
+            .first()
+        )
+
+        if not conversation:
+            raise NotFound("Conversation Not Exists.")
+
+        if args["first_id"]:
+            first_message = (
+                db.session.query(Message)
+                .filter(Message.conversation_id == conversation.id, Message.id == args["first_id"])
+                .first()
+            )
+
+            if not first_message:
+                raise NotFound("First message not found")
+
+            history_messages = (
+                db.session.query(Message)
+                .filter(
+                    Message.conversation_id == conversation.id,
+                    Message.created_at < first_message.created_at,
+                    Message.id != first_message.id,
+                )
+                .order_by(Message.created_at.desc())
+                .limit(args["limit"])
+                .all()
+            )
+        else:
+            history_messages = (
+                db.session.query(Message)
+                .filter(Message.conversation_id == conversation.id)
+                .order_by(Message.created_at.desc())
+                .limit(args["limit"])
+                .all()
+            )
+
+        has_more = False
+        if len(history_messages) == args["limit"]:
+            current_page_first_message = history_messages[-1]
+            rest_count = (
+                db.session.query(Message)
+                .filter(
+                    Message.conversation_id == conversation.id,
+                    Message.created_at < current_page_first_message.created_at,
+                    Message.id != current_page_first_message.id,
+                )
+                .count()
+            )
+
+            if rest_count > 0:
+                has_more = True
+
+        history_messages = list(reversed(history_messages))
+
+        return InfiniteScrollPagination(data=history_messages, limit=args["limit"], has_more=has_more)
+
+
 class MessageFeedbackApi(Resource):
     @validate_app_token(fetch_user_arg=FetchUserArg(fetch_from=WhereisUserArg.JSON, required=True))
     def post(self, app_model: App, end_user: EndUser, message_id):
@@ -144,6 +230,6 @@ class MessageSuggestedApi(Resource):
         return {"result": "success", "data": questions}
 
 
-api.add_resource(MessageListApi, "/messages")
+api.add_resource(ChatMessageListApi, "/messages")
 api.add_resource(MessageFeedbackApi, "/messages/<uuid:message_id>/feedbacks")
 api.add_resource(MessageSuggestedApi, "/messages/<uuid:message_id>/suggested")
