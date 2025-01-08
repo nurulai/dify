@@ -13,7 +13,7 @@ from core.ops.utils import measure_time
 from extensions.ext_database import db
 from libs.infinite_scroll_pagination import InfiniteScrollPagination
 from models.account import Account
-from models.model import App, AppMode, AppModelConfig, EndUser, Message, MessageFeedback, DatasetRetrieverResource
+from models.model import App, AppMode, AppModelConfig, EndUser, Message, MessageFeedback
 from services.conversation_service import ConversationService
 from services.errors.conversation import ConversationCompletedError, ConversationNotExistsError
 from services.errors.message import (
@@ -58,7 +58,6 @@ class MessageService:
 
             history_messages = (
                 db.session.query(Message)
-                .outerjoin(DatasetRetrieverResource)
                 .filter(
                     Message.conversation_id == conversation.id,
                     Message.created_at < first_message.created_at,
@@ -71,7 +70,6 @@ class MessageService:
         else:
             history_messages = (
                 db.session.query(Message)
-                .outerjoin(DatasetRetrieverResource)
                 .filter(Message.conversation_id == conversation.id)
                 .order_by(Message.created_at.desc())
                 .limit(limit)
