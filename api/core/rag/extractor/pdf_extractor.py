@@ -12,7 +12,7 @@ from core.rag.models.document import Document
 from extensions.ext_storage import storage
 
 
-class PdfImageExtractor(BaseExtractor):
+class PdfExtractor(BaseExtractor):
     """Load pdf files by converting pages to images and using OCR.
 
     Args:
