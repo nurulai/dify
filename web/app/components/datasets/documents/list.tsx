@@ -6,6 +6,7 @@ import { ArrowDownIcon } from '@heroicons/react/24/outline'
 import { pick, uniq } from 'lodash-es'
 import {
   RiArchive2Line,
+  RiArrowDownBoxLine,
   RiDeleteBinLine,
   RiEditLine,
   RiEqualizer2Line,
@@ -32,7 +33,7 @@ import Tooltip from '@/app/components/base/tooltip'
 import Toast, { ToastContext } from '@/app/components/base/toast'
 import type { ColorMap, IndicatorProps } from '@/app/components/header/indicator'
 import Indicator from '@/app/components/header/indicator'
-import { asyncRunSafe } from '@/utils'
+import { asyncRunSafe, downloadExternalDoc } from '@/utils'
 import { formatNumber } from '@/utils/format'
 import NotionIcon from '@/app/components/base/notion-icon'
 import ProgressBar from '@/app/components/base/progress-bar'
@@ -333,6 +334,15 @@ export const OperationAction: FC<{
               <div className={cn(s.actionItem, s.deleteActionItem, 'group')} onClick={() => setShowModal(true)}>
                 <RiDeleteBinLine className={'w-4 h-4 text-text-tertiary group-hover:text-text-destructive'} />
                 <span className={cn(s.actionName, 'group-hover:text-text-destructive')}>{t('datasetDocuments.list.action.delete')}</span>
+              </div>
+              <div className={cn(s.actionItem)} onClick={() => {
+                downloadExternalDoc({
+                  documentId: detail.id,
+                  documentName: detail.name,
+                })
+              }}>
+                <RiArrowDownBoxLine className='w-4 h-4 text-text-tertiary' />
+                <span className={s.actionName}>{'Download'}</span>
               </div>
             </div>
           }

@@ -55,3 +55,35 @@ export async function fetchWithRetry<T = any>(fn: Promise<T>, retries = 3): Prom
     return [null, res]
   }
 }
+
+export function downloadExternalDoc({ documentId, documentName }: { documentId: string; documentName: string }) {
+  const myHeaders = new Headers()
+  myHeaders.append('Content-Type', 'application/json')
+
+  const raw = JSON.stringify({
+    document_id: documentId,
+    name: documentName,
+  })
+
+  const requestOptions = {
+    method: 'POST',
+    headers: myHeaders,
+    body: raw,
+    redirect: 'follow',
+  } as any
+
+  fetch('https://pg.core.bjb.labahasa.ai/api/query/read_file_path/', requestOptions)
+    .then(response => response.json())
+    .then((result: {
+      data: {
+        id: string
+        document_id: string
+        key: string
+        name: string
+        url: string
+      }
+    }) => {
+      window.open(`https://api.core.bjb.labahasa.ai${result.data.url}`, '_blank')
+    })
+    .catch(error => console.error(error))
+}
