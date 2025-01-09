@@ -2,6 +2,8 @@ import { Fragment, useState } from 'react'
 import type { FC } from 'react'
 import Link from 'next/link'
 import { useTranslation } from 'react-i18next'
+import { RiDownloadFill } from '@remixicon/react'
+import Button from '../../../button'
 import Tooltip from './tooltip'
 import ProgressTooltip from './progress-tooltip'
 import type { Resources } from './index'
@@ -58,6 +60,39 @@ const Popup: FC<PopupProps> = ({
             <div className='flex items-center h-[18px]'>
               <FileIcon type={fileType} className='shrink-0 mr-1 w-4 h-4' />
               <div className='text-xs font-medium text-gray-600 truncate'>{data.documentName}</div>
+              <Button variant={'ghost'} size={'small'} className='ml-1' onClick={() => {
+                const myHeaders = new Headers()
+                myHeaders.append('Content-Type', 'application/json')
+
+                const raw = JSON.stringify({
+                  document_id: data.documentId,
+                  name: data.documentName,
+                })
+
+                const requestOptions = {
+                  method: 'POST',
+                  headers: myHeaders,
+                  body: raw,
+                  redirect: 'follow',
+                } as any
+
+                fetch('https://pg.core.bjb.labahasa.ai/api/query/read_file_path/', requestOptions)
+                  .then(response => response.json())
+                  .then((result: {
+                    data: {
+                      id: string
+                      document_id: string
+                      key: string
+                      name: string
+                      url: string
+                    }
+                  }) => {
+                    window.open(`https://api.core.bjb.labahasa.ai${result.data.url}`, '_blank')
+                  })
+                  .catch(error => console.error(error))
+              }}>
+                <RiDownloadFill className='w-4 h-4' />
+              </Button>
             </div>
           </div>
           <div className='px-4 py-0.5 max-h-[450px] bg-white rounded-lg overflow-y-auto'>
